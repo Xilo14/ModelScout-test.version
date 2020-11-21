@@ -1,4 +1,4 @@
-TgBotConsole/obj/*
-DbModelScoutEf/obj/*
-TgBotConsole/bin/*
-DbModelScoutEf/bin/*
+ModelScoutAPI/obj/*
+TgInterface/obj/*
+ModelScoutAPI/bin/*
+TgInterface/bin/*
