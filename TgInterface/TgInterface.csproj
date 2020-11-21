@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+    <PackageReference Include="TelegramBotBase" Version="3.2.2" />
   </ItemGroup>
 
   <PropertyGroup>
