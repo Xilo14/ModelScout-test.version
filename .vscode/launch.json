@@ -7,9 +7,9 @@
                  "type": "coreclr",
                  "request": "launch",
                  "preLaunchTask": "build",
-                 "program": "${workspaceFolder}/TgBotConsole/bin/Debug/netcoreapp3.1/TgBotConsole.dll",
+                 "program": "${workspaceFolder}/TgInterface/bin/Debug/netcoreapp3.1/TgInterface.dll",
                  "args": [],
-                 "cwd": "${workspaceFolder}/TgBotConsole",
+                 "cwd": "${workspaceFolder}/TgInterface",
                  "console": "externalTerminal",
                  "stopAtEntry": false,
                  "internalConsoleOptions": "openOnSessionStart"
