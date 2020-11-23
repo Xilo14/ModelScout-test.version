@@ -2,12 +2,20 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ModelScoutAPI.Models {
-    public class VkAcc {
+namespace ModelScoutAPI.Models
+{
+    public class VkAcc
+    {
         [Key]
-        [DatabaseGenerated (DatabaseGeneratedOption.Identity)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int VkAccId { get; set; }
         public string AccessToken { get; set; }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        public int FriendsLimit { get; set; }
+        public int CountAddedFriends { get; set; }
 
         //SearchConfig
         public int BirthMonth { get; set; }
@@ -22,7 +30,7 @@ namespace ModelScoutAPI.Models {
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public List<VkClient> VkClients { get; } = new List<VkClient> ();
+        public List<VkClient> VkClients { get; } = new List<VkClient>();
 
     }
 }
