@@ -13,7 +13,7 @@ namespace ModelScoutAPI {
         public ModelScoutDbContext(DbContextOptions<ModelScoutDbContext> options) 
             :base(options)
         {
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
         protected override void OnModelCreating (ModelBuilder modelBuilder) {
             modelBuilder
