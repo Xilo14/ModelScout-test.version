@@ -3,22 +3,43 @@
         "version": "0.2.0",
         "configurations": [
              {
-                 "name": ".NET Core Launch (console)",
+                 "name": "Launch Backend (console)",
                  "type": "coreclr",
                  "request": "launch",
                  "preLaunchTask": "build",
-                 "program": "${workspaceFolder}/TgInterface/bin/Debug/netcoreapp3.1/TgInterface.dll",
+                 "program": "${workspaceFolder}/ModelScoutBackend/bin/Debug/netcoreapp3.1/ModelScoutBackend.dll",
                  "args": [],
-                 "cwd": "${workspaceFolder}/TgInterface",
+                 "cwd": "${workspaceFolder}/ModelScoutBackend",
                  "console": "externalTerminal",
                  "stopAtEntry": false,
                  "internalConsoleOptions": "openOnSessionStart"
              },
              {
+                "name": "Launch TgBot (console)",
+                "type": "coreclr",
+                "request": "launch",
+                "preLaunchTask": "build",
+                "program": "${workspaceFolder}/TgInterface/bin/Debug/netcoreapp3.1/TgInterface.dll",
+                "args": [],
+                "cwd": "${workspaceFolder}/TgInterface",
+                "console": "externalTerminal",
+                "stopAtEntry": false,
+                "internalConsoleOptions": "openOnSessionStart"
+            },
+             {
                  "name": ".NET Core Attach",
                  "type": "coreclr",
                  "request": "attach",
                  "processId": "${command:pickProcess}"
+             }
+         ],
+         "compounds": [
+             {
+                 "name": "Launch both",
+                 "configurations": [
+                     "Launch Backend (console)",
+                     "Launch TgBot (console)"
+                    ]
              }
          ]
      }
