@@ -1,15 +1,65 @@
 {
-        "version": "2.0.0",
-        "tasks": [
-            {
-                "label": "build",
-                "command": "dotnet",
-                "type": "process",
-                "args": [
-                    "build",
-                    "${workspaceFolder}/TgInterface/TgInterface.csproj"
-                ],
-                "problemMatcher": "$msCompile"
-            }
-        ]
-    }
+    "version": "2.0.0",
+    "tasks": [{
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/ModelScout.sln"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "-f:netcoreapp3.1",
+                "-c:Release",
+                "-r:win-x64",
+                "--self-contained=false",
+                "/p:PublishSingleFile=true",
+                "/p:IncludeSymbolsInSingleFile=true",
+                "/p:PublishTrimmed=false",
+                "-o:${workspaceFolder}/publish/default/"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Publish scd",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "-f:netcoreapp3.1",
+                "-c:Release",
+                "-r:win-x64",
+                "--self-contained=true",
+                "/p:PublishSingleFile=true",
+                "/p:IncludeSymbolsInSingleFile=true",
+                "/p:PublishTrimmed=false",
+                "-o:${workspaceFolder}/publish/scd/"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Publish scd&trim",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "-f:netcoreapp3.1",
+                "-c:Release",
+                "-r:win-x64",
+                "--self-contained=true",
+                "/p:PublishSingleFile=true",
+                "/p:IncludeSymbolsInSingleFile=true",
+                "/p:PublishTrimmed=true",
+                "-o:${workspaceFolder}/publish/scd&trim/"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
