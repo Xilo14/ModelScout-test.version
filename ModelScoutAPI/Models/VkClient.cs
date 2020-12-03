@@ -9,6 +9,8 @@ namespace ModelScoutAPI.Models {
             Declined,
             Ready,
             Liked,
+            Checked,
+            Error,
         }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
