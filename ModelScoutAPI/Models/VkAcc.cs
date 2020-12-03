@@ -32,5 +32,9 @@ namespace ModelScoutAPI.Models
 
         public List<VkClient> VkClients { get; } = new List<VkClient>();
 
+        public int CompareTo(VkAcc other)
+        {
+            return (this.FriendsLimit - this.CountAddedFriends).CompareTo(other.FriendsLimit - other.CountAddedFriends);
+        }
     }
 }
