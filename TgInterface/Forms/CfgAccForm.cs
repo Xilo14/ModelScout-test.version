@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
 namespace TgInterface.Forms {
     public class CfgAccForm : AutoCleanForm {
 
-        private int _vkAccId;
-        public CfgAccForm (int VkAccId) {
+        private long _vkAccId;
+        public CfgAccForm (long VkAccId) {
             this._vkAccId = VkAccId;
         }
 
@@ -23,14 +24,44 @@ namespace TgInterface.Forms {
                 return;
 
             message.Handled = true;
+            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi (message.DeviceId);
+            switch (call.Method) {
+                case "RemoveVkAcc":
+                    var vkAcc = await api.GetVkAcc (this._vkAccId);
+                    ConfirmDialog pd = new ConfirmDialog (
+                        $"Подтвердите удаление аккаунта {vkAcc.FirstName} {vkAcc.LastName}",
+                        new ButtonBase ("Да, удалить", "ok"),
+                        new ButtonBase ("Нет, я случайно нажала", "cancel"));
 
-            switch (call.Value) {
-                case "ChangeCfgAccForm":
+                    Boolean Confirmed = false;
+                    pd.ButtonClicked += (s, en) => {
+                        if (en.Button.Value == "ok")
+                            Confirmed = true;
+                        else if (en.Button.Value == "cancel")
+                            Confirmed = false;
+
+                    };
+                    pd.Closed += async (s, en) => {
+                        this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
+                        if (Confirmed) {
+                            await api.RemoveVkAcc (vkAcc);
+                            await pd.Device.Send ("Аккаунт был удален.");
+                            var alf = new AccListForm ();
+                            await this.NavigateTo (alf);
+                        } else {
+                            await pd.Device.Send ("Аккаунт не был удален.");
+                        }
+                    };
+
+                    await this.OpenModal (pd);
+                    break;
+
+                case "GoToChangeCfgAccForm":
                     var ccaf = new ChangeCfgAccForm (_vkAccId);
                     await this.NavigateTo (ccaf);
                     break;
 
-                case "AccListForm":
+                case "GoToAccListForm":
                     var alf = new AccListForm ();
                     await this.NavigateTo (alf);
                     break;
@@ -39,18 +70,22 @@ namespace TgInterface.Forms {
                     message.Handled = false;
                     break;
             }
-
         }
 
         public override async Task Render (MessageResult message) {
-            ButtonForm btn = new ButtonForm ();
-            
-            btn.AddButtonRow (
-                new ButtonBase ("Изменить конфиг", new CallbackData ("GoTo", "ChangeCfgAccForm").Serialize ()));
-            btn.AddButtonRow (
-                new ButtonBase ("Назад", new CallbackData ("GoTo", "AccListForm").Serialize ()));
+            string text = "Текущий конфиг:\n...";
 
-            await this.Device.Send ("Click a button", btn);
+            ButtonForm btn = new ButtonForm ();
+
+            btn.AddButtonRow (
+                new ButtonBase ("Изменить конфиг", new CallbackData ("GoToChangeCfgAccForm", "").Serialize ()));
+            btn.AddButtonRow (
+                new ButtonBase ("Удалить аккаунт", new CallbackData ("RemoveVkAcc", "").Serialize ()));
+            btn.AddButtonRow (
+                new ButtonBase ("Назад", new CallbackData ("GoToAccListForm", "").Serialize ()));
+
+            this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnEveryCall;
+            await this.Device.Send (text, btn);
 
         }
     }

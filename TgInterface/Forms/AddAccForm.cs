@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
 namespace TgInterface.Forms {
     public class AddAccForm : AutoCleanForm {
-
 
         public override async Task Action (MessageResult message) {
 
@@ -35,7 +35,7 @@ namespace TgInterface.Forms {
 
         public override async Task Render (MessageResult message) {
             ButtonForm btn = new ButtonForm ();
-            
+
             btn.AddButtonRow (
                 new ButtonBase ("Отмена", new CallbackData ("GoTo", "AccListForm").Serialize ()));
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
@@ -20,13 +21,13 @@ namespace TgInterface.Forms {
 
             switch (call.Value) {
                 case "WorkForm":
-                    var wf = new WorkForm();
-                    await this.NavigateTo(wf);
+                    var wf = new WorkForm ();
+                    await this.NavigateTo (wf);
                     break;
 
                 case "AccListForm":
-                    var alf = new AccListForm();
-                    await this.NavigateTo(alf);
+                    var alf = new AccListForm ();
+                    await this.NavigateTo (alf);
                     break;
 
                 default:
@@ -37,6 +38,23 @@ namespace TgInterface.Forms {
         }
 
         public override async Task Render (MessageResult message) {
+            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi (message.DeviceId);
+            var vkAccs = await api.GetVkAccs ();
+            int TotalLimit = 0;
+            int TotalAddedFrinds = 0;
+
+            string text = $"У вас {vkAccs.Count} страниц:\n";
+
+            int i = 1;
+            foreach (var vkAcc in vkAccs) {
+                text += $"{i++}) {vkAcc.FirstName} {vkAcc.LastName} {vkAcc.CountAddedFriends}/{vkAcc.FriendsLimit};\n";
+
+                TotalLimit += vkAcc.FriendsLimit;
+                TotalAddedFrinds += vkAcc.CountAddedFriends;
+            }
+
+            text += $"\nОбщий лимит {TotalAddedFrinds}/{TotalLimit}";
+
             ButtonForm btn = new ButtonForm ();
 
             btn.AddButtonRow (
@@ -44,7 +62,7 @@ namespace TgInterface.Forms {
             btn.AddButtonRow (
                 new ButtonBase ("Список аккаунтов", new CallbackData ("GoTo", "AccListForm").Serialize ()));
 
-            await this.Device.Send ("Click a button", btn);
+            await this.Device.Send (text, btn);
 
         }
     }
