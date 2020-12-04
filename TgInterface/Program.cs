@@ -1,20 +1,82 @@
 using System;
+using System.IO;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+using ModelScoutAPI;
+
+using Serilog;
+using Serilog.Context;
+using Serilog.Formatting.Compact;
 
 namespace TgInterface {
     class Program {
-        static string _apiKey = "965933220:AAF89Gzw8wPZvOTFlrKCXZ_yIOZTy5OTCPI";
-        static void Main (string[] args) {
-            var bot = new TelegramBotBase.BotBase<Forms.StartForm> (_apiKey);
+        static void Main(string[] args) {
+            //Serilog logger config
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File(new CompactJsonFormatter(), "./logs/msTgInterface/json/log.json", rollingInterval: RollingInterval.Day)
+                .WriteTo.File("./logs/msTgInterface/txt/log.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
 
-            bot.StateMachine = new TelegramBotBase.States.JSONStateMachine (
+            //Microsoft.Logging for VkNet config and setup
+            using var loggerFactory = LoggerFactory.Create(builder => {
+                builder
+                    .ClearProviders()
+                    .AddFilter("Microsoft", LogLevel.Warning)
+                    .AddFilter("System", LogLevel.Warning)
+                    .SetMinimumLevel(LogLevel.Debug)
+                    .AddSerilog(dispose: true);
+            });
+
+            VkApisManager.logger = loggerFactory.CreateLogger<VkNet.VkApi>();
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            var configuration = builder.Build();
+
+            var modelScoutAPIOptions = new ModelScoutAPIOptions();
+
+            configuration.GetSection(ModelScoutAPIOptions.ModelScout)
+                .Bind(modelScoutAPIOptions);
+
+            var apiKey = configuration.GetSection("TgInterface")
+                .GetSection("ApiKey")
+                .Value;
+
+            var bot = new TelegramBotBase.BotBase<Forms.StartForm>(apiKey);
+
+            ModelScoutAPIPooler.DefaultOptions = modelScoutAPIOptions;
+            VkApisManager.modelScoutAPIOptions = modelScoutAPIOptions;
+
+            bot.StateMachine = new TelegramBotBase.States.JSONStateMachine(
                 AppContext.BaseDirectory + "config\\states.json");
 
-            bot.Start ();
+            bot.SetSetting(TelegramBotBase.Enums.eSettings.LogAllMessages, true);
+            bot.Message += (s, en) => {
+                using (LogContext.PushProperty("message", en.Message)) {
+                    Log.Information(
+                        "New msg from @{Username}({ChatId}) \"{Text}\" {RawData}",
+                        en.Message.Message.From.Username,
+                        en.DeviceId,
+                        en.Message.MessageText,
+                        en.Message.RawData ?? "");
+                }
+            };
 
-            Console.WriteLine ("Bot started");
+            bot.Start();
+            Log.Information("Bot started");
 
-            Console.ReadLine ();
-            bot.Stop ();
+            Console.ReadLine();
+
+            bot.Stop();
+            Log.Information("Bot stopped");
         }
     }
 }
