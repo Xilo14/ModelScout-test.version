@@ -1,5 +1,9 @@
 # ModelScout
 
+This projects uses https://github.com/MajMcCloud/TelegramBotFramework
+
+# Description
+
 This is pet project for learning TelegramBotBase, EF Core, VkNet and TgBotApi.
 In this projects uses GOD objects and other techniques of poor-quality architecture.
 The trick is performed by a beginner! Do not repeat at home!
