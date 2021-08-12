@@ -1,31 +1,25 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace ModelScoutAPI.Migrations
-{
-    public partial class _123231 : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+namespace ModelScoutAPI.Migrations {
+    public partial class _123231 : Migration {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.CreateTable(
                 name: "Users",
-                columns: table => new
-                {
+                columns: table => new {
                     UserId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ChatId = table.Column<long>(type: "bigint", nullable: false),
                     CurrentStep = table.Column<int>(type: "integer", nullable: false),
                     LastMessageId = table.Column<long>(type: "bigint", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_Users", x => x.UserId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "VkAccs",
-                columns: table => new
-                {
+                columns: table => new {
                     VkAccId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AccessToken = table.Column<string>(type: "text", nullable: true),
@@ -42,8 +36,7 @@ namespace ModelScoutAPI.Migrations
                     Sex = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_VkAccs", x => x.VkAccId);
                     table.ForeignKey(
                         name: "FK_VkAccs_Users_UserId",
@@ -55,16 +48,14 @@ namespace ModelScoutAPI.Migrations
 
             migrationBuilder.CreateTable(
                 name: "VkClients",
-                columns: table => new
-                {
+                columns: table => new {
                     VkClientId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ProfileVkId = table.Column<int>(type: "integer", nullable: false),
                     ClientStatus = table.Column<int>(type: "integer", nullable: false),
                     VkAccId = table.Column<int>(type: "integer", nullable: false)
                 },
-                constraints: table =>
-                {
+                constraints: table => {
                     table.PrimaryKey("PK_VkClients", x => x.VkClientId);
                     table.ForeignKey(
                         name: "FK_VkClients_VkAccs_VkAccId",
@@ -85,8 +76,7 @@ namespace ModelScoutAPI.Migrations
                 column: "VkAccId");
         }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropTable(
                 name: "VkClients");
 
