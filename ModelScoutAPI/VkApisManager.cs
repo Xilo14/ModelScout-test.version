@@ -1,35 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ModelScoutAPI.Models;
 using VkNet;
+using VkNet.Enums.Filters;
+using VkNet.Enums.SafetyEnums;
 using VkNet.Exception;
 using VkNet.Model;
 using VkNet.Model.Attachments;
 using VkNet.Model.RequestParams;
 using VkNet.Utils;
 
-namespace ModelScoutAPI
-{
-    static public class VkApisManager
-    {
+namespace ModelScoutAPI {
+    public static class VkApisManager {
         public static ModelScoutAPIOptions modelScoutAPIOptions = null;
         public static ILogger<VkNet.VkApi> logger = null;
         static Dictionary<String, VkApi> cachedApis = new Dictionary<String, VkApi>();
 
-        static public async Task<AccountSaveProfileInfoParams> GetProfileInfo(VkAcc vkAcc)
-        {
+        public static async Task<AccountSaveProfileInfoParams> GetProfileInfo(VkAcc vkAcc) {
             var api = _getApi(vkAcc);
             if (_isVkApiActive(api))
                 return await api.Account.GetProfileInfoAsync();
             else
                 return null;
         }
-        static public VkNet.Model.User GetVkUser(VkClient vkClient, VkAcc vkAcc = null)
-        {
+        public static VkNet.Model.User GetVkUser(VkClient vkClient, VkAcc vkAcc = null) {
             if (vkAcc == null)
                 vkAcc = vkClient.VkAcc;
 
@@ -43,8 +40,7 @@ namespace ModelScoutAPI
 
         }
 
-        internal static async Task AddUserToFriends(VkAcc vkAcc, int profileVkId)
-        {
+        internal static async Task AddUserToFriends(VkAcc vkAcc, int profileVkId) {
             var api = _getApi(vkAcc);
 
             await api.Friends.AddAsync(
@@ -54,14 +50,66 @@ namespace ModelScoutAPI
             );
         }
 
-        internal static async Task RandomLikeUser(VkAcc vkAcc, int profileVkId)
-        {
+        public static async Task<long> CheckCountFriendRequests(VkAcc vkAcc) {
+            var api = _getApi(vkAcc);
+
+            var friendsCount = (await api.Friends.GetAsync(
+                new FriendsGetParams() { Count = 0 })).Count;
+            var requestCount = (await api.Friends.GetRequestsAsync(
+                new FriendsGetRequestsParams() { Count = 0, Out = true })).Count;
+
+            return friendsCount + requestCount;
+        }
+
+        public static async Task<int> ClearFriends(VkAcc vkAcc) {
+            var api = _getApi(vkAcc);
+
+            var friends = (await api.Friends.GetAsync(
+                new FriendsGetParams() { Count = 1000, Order = FriendsOrder.Random }
+            )).ToList();
+            var recentFriends = await api.Friends.GetRecentAsync(1000);
+
+            friends.RemoveAll(e => recentFriends.Contains(e.Id));
+
+            var deletedCount = 0;
+            foreach (var friend in friends) {
+                var result = await api.Friends.DeleteAsync((long)friend.Id);
+                if (result.Success == true && result.FriendDeleted == true)
+                    deletedCount++;
+            }
+
+            return deletedCount;
+        }
+        public static async Task<int> ClearOutRequests(VkAcc vkAcc) {
+            var api = _getApi(vkAcc);
+
+            var outRequestCount = (await api.Friends.GetRequestsAsync(
+                new FriendsGetRequestsParams() { Count = 0, Out = true })).Count;
+
+            var offset = outRequestCount - 1000;
+            if (offset < 0)
+                offset = 0;
+
+            var outRequests = await api.Friends.GetRequestsExtendedAsync(
+                new FriendsGetRequestsParams() { Count = 1000, Out = true, Offset = offset });
+
+            var deletedCount = 0;
+            foreach (var outReq in outRequests)
+                if (outReq.UserId != null) {
+                    var result = await api.Friends.DeleteAsync((long)outReq.UserId);
+                    if (result.Success == true && result.OutRequestDeleted == true)
+                        deletedCount++;
+                }
+
+            return deletedCount;
+
+        }
+        internal static async Task RandomLikeUser(VkAcc vkAcc, int profileVkId) {
             var rand = new Random();
             var api = _getApi(vkAcc);
 
 
-            var Photos = await api.Photo.GetAsync(new PhotoGetParams()
-            {
+            var Photos = await api.Photo.GetAsync(new PhotoGetParams() {
                 OwnerId = profileVkId,
                 AlbumId = VkNet.Enums.SafetyEnums.PhotoAlbumType.Profile,
                 Reversed = true,
@@ -72,11 +120,9 @@ namespace ModelScoutAPI
             if (countLikes > Photos.Count)
                 countLikes = Photos.Count;
             var PhotosNeedLikes = Photos.OrderBy(s => rand.Next()).Take(countLikes).ToList();
-            foreach (var photo in PhotosNeedLikes)
-            {
-                await Task.Delay(rand.Next(10000, 20000));
-                await api.Likes.AddAsync(new LikesAddParams
-                {
+            foreach (var photo in PhotosNeedLikes) {
+                await Task.Delay(rand.Next(12000, 24000));
+                await api.Likes.AddAsync(new LikesAddParams {
                     Type = VkNet.Enums.SafetyEnums.LikeObjectType.Photo,
                     ItemId = photo.Id.Value,
                     OwnerId = photo.OwnerId,
@@ -84,13 +130,11 @@ namespace ModelScoutAPI
             }
         }
 
-        static public async Task<VkCollection<Photo>> GetProfilePhotosClient(VkClient vkClient, VkAcc vkAcc = null)
-        {
+        public static async Task<VkCollection<Photo>> GetProfilePhotosClient(VkClient vkClient, VkAcc vkAcc = null) {
             if (vkAcc == null)
                 vkAcc = vkClient.VkAcc;
             var api = _getApi(vkAcc);
-            var Photos = await api.Photo.GetAsync(new PhotoGetParams()
-            {
+            var Photos = await api.Photo.GetAsync(new PhotoGetParams() {
                 OwnerId = vkClient.ProfileVkId,
                 AlbumId = VkNet.Enums.SafetyEnums.PhotoAlbumType.Profile,
                 Reversed = true,
@@ -100,10 +144,8 @@ namespace ModelScoutAPI
             return Photos;
 
         }
-        static VkApi _getApi(VkAcc vkAcc)
-        {
-            if (!cachedApis.ContainsKey(vkAcc.AccessToken))
-            {
+        static VkApi _getApi(VkAcc vkAcc) {
+            if (!cachedApis.ContainsKey(vkAcc.AccessToken)) {
                 VkApi vkApi;
                 if (VkApisManager.modelScoutAPIOptions != null)
                     vkApi = new VkApi(logger, new CaptchaSolvers.CptchCaptchaSolver(
@@ -113,8 +155,7 @@ namespace ModelScoutAPI
                     vkApi = new VkApi(logger);
 
                 // new CaptchaSolvers.CptchCaptchaSolver()
-                vkApi.Authorize(new ApiAuthParams
-                {
+                vkApi.Authorize(new ApiAuthParams {
                     AccessToken = vkAcc.AccessToken
                 });
                 cachedApis.Add(vkAcc.AccessToken, vkApi);
@@ -124,10 +165,9 @@ namespace ModelScoutAPI
 
         internal static async Task<List<VkClient>> GetNewClients(
             VkAcc vkAcc, int Count, ModelScoutAPI api,
-             ModelScoutDbContext context)
-        {
-            uint UpdatedCount = 0;
-            uint Offset = 0;
+             ModelScoutDbContext context) {
+            uint updatedCount = 0;
+            uint offset = 0;
 
             List<VkClient> vkClients = new List<VkClient>();
 
@@ -136,10 +176,8 @@ namespace ModelScoutAPI
             if (!_isVkApiActive(vkApi))
                 return null;
 
-            while (UpdatedCount < Count)
-            {
-                var clientsSearch = await vkApi.Users.SearchAsync(new UserSearchParams()
-                {
+            while (updatedCount < Count) {
+                var clientsSearch = await vkApi.Users.SearchAsync(new UserSearchParams() {
                     City = vkAcc.City,
                     Country = vkAcc.Country,
                     AgeFrom = (ushort)vkAcc.AgeFrom,
@@ -150,18 +188,20 @@ namespace ModelScoutAPI
                     Online = true,
                     HasPhoto = true,
                     Count = (uint)Count,
-                    Offset = Offset,
+                    Offset = offset,
+                    Fields = ProfileFields.City,
 
                 });
 
-                foreach (var clientSearch in clientsSearch)
-                {
+                foreach (var clientSearch in clientsSearch) {
                     //BAD CODE
-                    if (!context.VkClients.Any(e => e.ProfileVkId == clientSearch.Id) && clientSearch.IsClosed != true)
+                    if (!context.VkClients.Any(e => e.ProfileVkId == clientSearch.Id)
+                    && clientSearch.IsClosed != true
+                    && (clientSearch.City == null || clientSearch.City?.Id == vkAcc.City)
+                    )
                     //BAD CODE
                     {
-                        var vkClient = new VkClient()
-                        {
+                        var vkClient = new VkClient() {
                             ClientStatus = VkClient.Status.Unchecked,
                             VkAccId = vkAcc.VkAccId,
                             ProfileVkId = (int)clientSearch.Id
@@ -170,14 +210,14 @@ namespace ModelScoutAPI
                         vkAcc.VkClients.Add(vkClient);
                         //BAD CODE
                         vkClients.Add(vkClient);
-                        UpdatedCount++;
+                        updatedCount++;
                     }
 
                 }
 
-                Offset += (uint)Count;
+                offset += (uint)Count;
 
-                if (clientsSearch.TotalCount < Offset)
+                if (clientsSearch.TotalCount < offset)
                     break;
             }
             return vkClients;
@@ -254,15 +294,12 @@ namespace ModelScoutAPI
         //     return -1;
 
         // }
-        public static async Task<Boolean> TryAuthorize(string accessToken)
-        {
+        public static async Task<Boolean> TryAuthorize(string accessToken) {
             var vkApi = new VkApi();
-            await vkApi.AuthorizeAsync(new ApiAuthParams
-            {
+            await vkApi.AuthorizeAsync(new ApiAuthParams {
                 AccessToken = accessToken
             });
-            if (_isVkApiActive(vkApi))
-            {
+            if (_isVkApiActive(vkApi)) {
                 return true;
             }
             return false;
@@ -315,21 +352,14 @@ namespace ModelScoutAPI
         //         context.SaveChanges();
         //     }
         // }
-        private static bool _isVkApiActive(VkApi vkApi)
-        {
-            if (vkApi.IsAuthorized)
-            {
-                try
-                {
+        private static bool _isVkApiActive(VkApi vkApi) {
+            if (vkApi.IsAuthorized) {
+                try {
                     vkApi.Account.GetProfileInfo();
                     return true;
-                }
-                catch (AccessTokenInvalidException)
-                {
+                } catch (AccessTokenInvalidException ex) {
                     return false;
-                }
-                catch (UserAuthorizationFailException)
-                {
+                } catch (UserAuthorizationFailException ex) {
                     return false;
                 }
 
