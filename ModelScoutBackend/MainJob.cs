@@ -2,59 +2,69 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ModelScoutAPI.Models;
 using Quartz;
 using Serilog;
 
-namespace ModelScoutBackend
-{
+namespace ModelScoutBackend {
     public class MainJob : IJob {
-        public async Task Execute (IJobExecutionContext context) {
+        public async Task Execute(IJobExecutionContext context) {
             if (Program.MainOptions == null) {
-                Log.Error ("Options not initialized");
+                Log.Error("Options not initialized");
                 return;
             }
-            ModelScoutAPI.ModelScoutAPI api = new ModelScoutAPI.ModelScoutAPI (Program.MainOptions);
+            var api = new ModelScoutAPI.ModelScoutAPI(Program.MainOptions);
+            await api.ClearLimitsOnceAtDay();
+            var tasks = new List<Task>();
 
-            List<Task> tasks = new List<Task> ();
+            var accs = await api.GetVkAccs();
 
-            var accs = await api.GetVkAccs ();
 
-            Log.Information ("Start MainJob. Count accs: {CountOfVkAccs}. General limit - {AddedFriends}/{FriendsLimit}",
+            Log.Information("Start MainJob. Count accs: {CountOfVkAccs}. General limit - {AddedFriends}/{FriendsLimit}",
                 accs.Count,
-                accs.Sum (e => e.CountAddedFriends),
-                accs.Sum (e => e.FriendsLimit));
+                accs.Sum(e => e.CountAddedFriends),
+                accs.Sum(e => e.FriendsLimit));
+
 
             foreach (var acc in accs) {
-                String ActionText;
-                var client = await api.GetLikedClient (acc);
-                if (client != null && acc.CountAddedFriends < acc.FriendsLimit) {
-                    tasks.Add (api.AddClientToFriends (client));
-
-                    ActionText = "Добавление в друзья";
+                string actionText;
+                VkClient client = null;
+                if (acc.CountAddedFriends >= acc.FriendsLimit) {
+                    actionText = "Достигнут лимит";
                 } else {
-                    client = await api.GetAcceptedClient (acc);
+                    client = await api.GetLikedClient(acc);
                     if (client != null) {
-                        tasks.Add (api.LikeClient (client));
-                        ActionText = "Ставим лайки";
-                    } else
+                        tasks.Add(api.AddClientToFriends(client));
 
-                        ActionText = "Нет клиентов";
+                        actionText = "Добавление в друзья";
+                    } else {
+                        client = await api.GetAcceptedClient(acc);
+                        if (client != null) {
+                            tasks.Add(api.LikeClient(client));
+                            actionText = "Ставим лайки";
+                        } else
 
+                            actionText = "Нет клиентов";
+
+                    }
                 }
-                Log.Information ("[{WorkerAccName}]({CountAddedFriends}/{FriendsLimit}) " +
-                    ActionText +
+                Log.Information("[{WorkerAccName}]({CountAddedFriends}+{InProccessCount}/{FriendsLimit}) " +
+                    actionText +
                     " {ClientProfileVkId}",
-                    acc.FirstName + " " + acc.LastName,
-                    acc.CountAddedFriends,
-                    acc.FriendsLimit,
-                    client != null ? client.ProfileVkId.ToString() : "");
+                        acc.FirstName + " " + acc.LastName,
+                        acc.CountAddedFriends,
+                        await api.GetCountAcceptedVkClients(acc.VkAccId),
+                        acc.FriendsLimit,
+                        client != null ? client.ProfileVkId.ToString() : "");
             }
-            Log.Debug ("Wait for all tasks completed...");
-            await Task.WhenAll (tasks);
-            Log.Debug ("All tasks are completed. Waiting for the pause to finish");
-            await Task.Delay (30000);
-            Log.Information ("Finish MainJob");
-
+            Log.Debug("Wait for all tasks completed...");
+            await Task.WhenAll(tasks);
+            Log.Debug("All tasks are completed. Waiting for the pause to finish");
+            var delay = 70000;
+            if (DateTime.Now.Hour < 13)
+                delay *= 2;
+            await Task.Delay(delay);
+            Log.Information("Finish MainJob");
         }
     }
 }
