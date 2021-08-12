@@ -1,11 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ModelScoutAPI.Models
-{
-    public class VkAcc
-    {
+namespace ModelScoutAPI.Models {
+    public class VkAcc : IComparable<VkAcc> {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int VkAccId { get; set; }
@@ -32,9 +31,9 @@ namespace ModelScoutAPI.Models
 
         public List<VkClient> VkClients { get; } = new List<VkClient>();
 
-        public int CompareTo(VkAcc other)
-        {
-            return (this.FriendsLimit - this.CountAddedFriends).CompareTo(other.FriendsLimit - other.CountAddedFriends);
+        public int CompareTo(VkAcc other) {
+            return (FriendsLimit - CountAddedFriends)
+            .CompareTo(other.FriendsLimit - other.CountAddedFriends);
         }
     }
 }
