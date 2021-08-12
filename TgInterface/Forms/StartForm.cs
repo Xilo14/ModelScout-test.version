@@ -12,7 +12,7 @@ namespace TgInterface.Forms {
 
             var call = message.GetData<CallbackData> ();
 
-            await message.ConfirmAction ();
+            await message.ConfirmAction("кусь");
 
             if (call == null)
                 return;
@@ -47,7 +47,8 @@ namespace TgInterface.Forms {
 
             int i = 1;
             foreach (var vkAcc in vkAccs) {
-                text += $"{i++}) {vkAcc.FirstName} {vkAcc.LastName} {vkAcc.CountAddedFriends}/{vkAcc.FriendsLimit};\n";
+                text += $"{i++}) {vkAcc.FirstName} {vkAcc.LastName} {vkAcc.CountAddedFriends}/{vkAcc.FriendsLimit} "
+                + "В обработке: " + await api.GetCountAcceptedVkClients(vkAcc.VkAccId) + "\n";
 
                 TotalLimit += vkAcc.FriendsLimit;
                 TotalAddedFrinds += vkAcc.CountAddedFriends;

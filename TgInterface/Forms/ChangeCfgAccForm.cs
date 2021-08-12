@@ -11,161 +11,170 @@ namespace TgInterface.Forms {
 
         private long _vkAccId;
 
-        public ChangeCfgAccForm (long VkAccId) {
+        public ChangeCfgAccForm(long VkAccId) {
             this._vkAccId = VkAccId;
             this.DeleteSide = TelegramBotBase.Enums.eDeleteSide.Both;
         }
 
-        public override async Task Action (MessageResult message) {
+        public override async Task Action(MessageResult message) {
 
-            var call = message.GetData<CallbackData> ();
+            var call = message.GetData<CallbackData>();
 
-            await message.ConfirmAction ();
+            await message.ConfirmAction();
 
             if (call == null)
                 return;
 
-            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi (message.DeviceId);
-            var vkAcc = await api.GetVkAcc (_vkAccId);
+            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi(message.DeviceId);
+            var vkAcc = await api.GetVkAcc(_vkAccId);
 
             message.Handled = true;
 
             PromptDialog pd;
             switch (call.Method) {
                 case "ChangeCity":
-                    pd = new PromptDialog ("Введите id города:");
+                    pd = new PromptDialog("Введите id города:");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0) {
                             vkAcc.City = result;
-                            await this.Device.Send ("Город изменен");
-                            await api.SaveVkAcc (vkAcc);
-                            await api.ClearUncheckedClients ();
+                            await this.Device.Send("Город изменен");
+                            await api.SaveVkAcc(vkAcc);
+
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeCountry":
-                    pd = new PromptDialog ("Введите id страны:");
+                    pd = new PromptDialog("Введите id страны:");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0) {
                             vkAcc.Country = result;
-                            await this.Device.Send ("Страна изменена");
-                            await api.SaveVkAcc (vkAcc);
-                            await api.ClearUncheckedClients ();
+                            await this.Device.Send("Страна изменена");
+                            await api.SaveVkAcc(vkAcc);
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeBirthDay":
-                    pd = new PromptDialog ("Введите день рождения (0 - любой):");
+                    pd = new PromptDialog("Введите день рождения (0 - любой):");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0 && result <= 31) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0 && result <= 31) {
                             vkAcc.BirthDay = result;
-                            await api.SaveVkAcc (vkAcc);
-                            await this.Device.Send ("День рождения изменен");
-                            await api.ClearUncheckedClients ();
+                            await api.SaveVkAcc(vkAcc);
+                            await this.Device.Send("День рождения изменен");
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeBirthMonth":
-                    pd = new PromptDialog ("Введите месяц рождения (0 - любой)::");
+                    pd = new PromptDialog("Введите месяц рождения (0 - любой)::");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0 && result <= 12) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0 && result <= 12) {
                             vkAcc.BirthMonth = result;
-                            await api.SaveVkAcc (vkAcc);
-                            await this.Device.Send ("Месяц рождения изменен");
-                            await api.ClearUncheckedClients ();
+                            await api.SaveVkAcc(vkAcc);
+                            await this.Device.Send("Месяц рождения изменен");
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeAgeFrom":
-                    pd = new PromptDialog ("Введите нижний предел возраста:");
+                    pd = new PromptDialog("Введите нижний предел возраста:");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0) {
                             vkAcc.AgeFrom = result;
-                            await api.SaveVkAcc (vkAcc);
-                            await this.Device.Send ("Нижний предел возраста изменен");
-                            await api.ClearUncheckedClients ();
+                            await api.SaveVkAcc(vkAcc);
+                            await this.Device.Send("Нижний предел возраста изменен");
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeAgeTo":
-                    pd = new PromptDialog ("Введите верхний предел возраста:");
+                    pd = new PromptDialog("Введите верхний предел возраста:");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0 && result <= 200) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0 && result <= 200) {
                             vkAcc.AgeTo = result;
-                            await api.SaveVkAcc (vkAcc);
-                            await this.Device.Send ("Верхний предел возраста изменен");
-                            await api.ClearUncheckedClients ();
+                            await api.SaveVkAcc(vkAcc);
+                            await this.Device.Send("Верхний предел возраста изменен");
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeSex":
-                    pd = new PromptDialog ("Введите пол (0 - любой, 1 - ж, 2 - м):");
+                    pd = new PromptDialog("Введите пол (0 - любой, 1 - ж, 2 - м):");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0 && result <= 2) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0 && result <= 2) {
                             vkAcc.Sex = result;
-                            await this.Device.Send ("Пол изменен");
-                            await api.SaveVkAcc (vkAcc);
-                            await api.ClearUncheckedClients ();
+                            await this.Device.Send("Пол изменен");
+                            await api.SaveVkAcc(vkAcc);
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
                 case "ChangeLimit":
-                    pd = new PromptDialog (
+                    pd = new PromptDialog(
                         "Введите лимит на добавление друзей\n" +
                         "(Этот лимит ограничивает кол-во заявок в друзья в день):");
                     pd.Closed += async (s, en) => {
                         int result;
                         this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-                        if (Int32.TryParse (pd.Value, out result) && result >= 0) {
+                        if (Int32.TryParse(pd.Value, out result) && result >= 0) {
                             vkAcc.FriendsLimit = result;
-                            await this.Device.Send ("Лимит изменен");
-                            await api.SaveVkAcc (vkAcc);
-                            await api.ClearUncheckedClients ();
+                            await this.Device.Send("Лимит изменен");
+                            await api.SaveVkAcc(vkAcc);
+                            await api.ClearCheckedClients();
+                            await api.ClearUncheckedClients();
                         } else
-                            await this.Device.Send ("Неверный ввод");
+                            await this.Device.Send("Неверный ввод");
 
                     };
-                    await this.OpenModal (pd);
+                    await this.OpenModal(pd);
                     break;
 
                 case "GoToCfgAccForm":
-                    var ccaf = new CfgAccForm (_vkAccId);
-                    await this.NavigateTo (ccaf);
+                    var ccaf = new CfgAccForm(_vkAccId);
+                    await this.NavigateTo(ccaf);
                     break;
 
                 default:
@@ -175,34 +184,38 @@ namespace TgInterface.Forms {
 
         }
 
-        public override async Task Render (MessageResult message) {
-            ButtonForm btn = new ButtonForm ();
+        public override async Task Render(MessageResult message) {
+            var btn = new ButtonForm();
 
-            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi (message.DeviceId);
-            var vkAcc = await api.GetVkAcc (_vkAccId);
+            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi(message.DeviceId);
+            var vkAcc = await api.GetVkAcc(_vkAccId);
 
-            btn.AddButtonRow (
-                new ButtonBase ($"Город ({vkAcc.City})", new CallbackData ("ChangeCity", "").Serialize ()),
-                new ButtonBase ($"Страна ({vkAcc.Country})", new CallbackData ("ChangeCountry", "").Serialize ())
+            btn.AddButtonRow(
+                new ButtonBase($"Город ({vkAcc.City})", new CallbackData("ChangeCity", "").Serialize()),
+                new ButtonBase($"Страна ({vkAcc.Country})", new CallbackData("ChangeCountry", "").Serialize())
             );
-            btn.AddButtonRow (
-                new ButtonBase ($"День ({vkAcc.BirthDay})", new CallbackData ("ChangeBirthDay", "").Serialize ()),
-                new ButtonBase ($"Месяц ({vkAcc.BirthMonth})", new CallbackData ("ChangeBirthMonth", "").Serialize ())
+            btn.AddButtonRow(
+                new ButtonBase($"День ({vkAcc.BirthDay})", new CallbackData("ChangeBirthDay", "").Serialize()),
+                new ButtonBase($"Месяц ({vkAcc.BirthMonth})", new CallbackData("ChangeBirthMonth", "").Serialize())
             );
-            btn.AddButtonRow (
-                new ButtonBase ($"Возраст от ({vkAcc.AgeFrom})", new CallbackData ("ChangeAgeFrom", "").Serialize ()),
-                new ButtonBase ($"Возраст до ({vkAcc.AgeTo})", new CallbackData ("ChangeAgeTo", "").Serialize ()),
-                new ButtonBase ($"Пол ({vkAcc.Sex})", new CallbackData ("ChangeSex", "").Serialize ())
+            btn.AddButtonRow(
+                new ButtonBase($"Возраст от ({vkAcc.AgeFrom})", new CallbackData("ChangeAgeFrom", "").Serialize()),
+                new ButtonBase($"Возраст до ({vkAcc.AgeTo})", new CallbackData("ChangeAgeTo", "").Serialize()),
+                new ButtonBase($"Пол ({vkAcc.Sex})", new CallbackData("ChangeSex", "").Serialize())
             );
-            btn.AddButtonRow (
-                new ButtonBase ($"Лимит ({vkAcc.FriendsLimit})", new CallbackData ("ChangeLimit", "").Serialize ())
+            btn.AddButtonRow(
+                new ButtonBase($"Лимит ({vkAcc.FriendsLimit})", new CallbackData("ChangeLimit", "").Serialize())
             );
 
-            btn.AddButtonRow (
-                new ButtonBase ("Готово", new CallbackData ("GoToCfgAccForm", "").Serialize ()));
+            btn.AddButtonRow(
+                new ButtonBase("Готово", new CallbackData("GoToCfgAccForm", "").Serialize()));
 
-            this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnEveryCall;
-            await this.Device.Send ("Нажмите чтобы изменить", btn);
+            DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnEveryCall;
+
+            var text = $"{vkAcc.FirstName} {vkAcc.LastName}";
+
+
+            await Device.Send(text, btn);
 
         }
     }

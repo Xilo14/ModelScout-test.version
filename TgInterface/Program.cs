@@ -55,6 +55,21 @@ namespace TgInterface {
             ModelScoutAPIPooler.DefaultOptions = modelScoutAPIOptions;
             VkApisManager.modelScoutAPIOptions = modelScoutAPIOptions;
 
+            var currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(
+                (object sender, UnhandledExceptionEventArgs args) => {
+                    var e = (Exception)args.ExceptionObject;
+
+                    using (LogContext.PushProperty("exception", e)) {
+                        Log.Fatal("Unhandled exception!" +
+                            $"\n{e.GetType()}" +
+                            $"\nMessage: {e.Message}" +
+                            $"\nSource: {e.Source}" +
+                            $"\nStackTrace: {e.StackTrace}");
+                    }
+                });
+
+
             bot.StateMachine = new TelegramBotBase.States.JSONStateMachine(
                 AppContext.BaseDirectory + "config\\states.json");
 
@@ -78,5 +93,7 @@ namespace TgInterface {
             bot.Stop();
             Log.Information("Bot stopped");
         }
+
+
     }
 }
