@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-
+using ModelScoutAPI.Models;
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
@@ -69,7 +69,12 @@ namespace TgInterface.Forms {
 
             var i = 1;
             foreach (var vkAcc in vkAccs) {
-                var status = vkAcc.VkAccStatus == ModelScoutAPI.Models.VkAcc.Status.Error ? "(Ошибка)" : "";
+                var status = vkAcc.VkAccStatus switch {
+                    VkAcc.Status.Active => "",
+                    VkAcc.Status.Error => "(Ошибка)",
+                    VkAcc.Status.Paused => "(Пауза)",
+                    _ => ""
+                };
                 text += $"{i++}) {vkAcc.FirstName} {vkAcc.LastName} {vkAcc.CountAddedFriends}/{vkAcc.FriendsLimit} "
                 + $"{status}"
                 + "В обработке: " + await api.GetCountAcceptedVkClients(vkAcc.VkAccId) + "\n";
