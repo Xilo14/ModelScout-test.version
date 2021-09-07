@@ -8,9 +8,9 @@ using TelegramBotBase.Form;
 
 namespace TgInterface.Forms {
     public class StartForm : AutoCleanForm {
-        public override async Task Action (MessageResult message) {
+        public override async Task Action(MessageResult message) {
 
-            var call = message.GetData<CallbackData> ();
+            var call = message.GetData<CallbackData>();
 
             await message.ConfirmAction("кусь");
 
@@ -21,13 +21,13 @@ namespace TgInterface.Forms {
 
             switch (call.Value) {
                 case "WorkForm":
-                    var wf = new WorkForm ();
-                    await this.NavigateTo (wf);
+                    var wf = new WorkForm();
+                    await this.NavigateTo(wf);
                     break;
 
                 case "AccListForm":
-                    var alf = new AccListForm ();
-                    await this.NavigateTo (alf);
+                    var alf = new AccListForm();
+                    await this.NavigateTo(alf);
                     break;
 
                 default:
@@ -37,33 +37,35 @@ namespace TgInterface.Forms {
 
         }
 
-        public override async Task Render (MessageResult message) {
-            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi (message.DeviceId);
-            var vkAccs = await api.GetVkAccs ();
-            int TotalLimit = 0;
-            int TotalAddedFrinds = 0;
+        public override async Task Render(MessageResult message) {
+            var api = await ModelScoutAPI.ModelScoutAPIPooler.GetOrCreateApi(message.DeviceId);
+            var vkAccs = await api.GetVkAccs();
+            var totalLimit = 0;
+            var totalAddedFrinds = 0;
 
-            string text = $"У вас {vkAccs.Count} страниц:\n";
+            var text = $"У вас {vkAccs.Count} страниц:\n";
 
-            int i = 1;
+            var i = 1;
             foreach (var vkAcc in vkAccs) {
+                var status = vkAcc.VkAccStatus == ModelScoutAPI.Models.VkAcc.Status.Error ? "(Ошибка)" : "";
                 text += $"{i++}) {vkAcc.FirstName} {vkAcc.LastName} {vkAcc.CountAddedFriends}/{vkAcc.FriendsLimit} "
+                + $"{status}"
                 + "В обработке: " + await api.GetCountAcceptedVkClients(vkAcc.VkAccId) + "\n";
 
-                TotalLimit += vkAcc.FriendsLimit;
-                TotalAddedFrinds += vkAcc.CountAddedFriends;
+                totalLimit += vkAcc.FriendsLimit;
+                totalAddedFrinds += vkAcc.CountAddedFriends;
             }
 
-            text += $"\nОбщий лимит {TotalAddedFrinds}/{TotalLimit}";
+            text += $"\nОбщий лимит {totalAddedFrinds}/{totalLimit}";
 
-            ButtonForm btn = new ButtonForm ();
+            var btn = new ButtonForm();
 
-            btn.AddButtonRow (
-                new ButtonBase ("Начать работу", new CallbackData ("GoTo", "WorkForm").Serialize ()));
-            btn.AddButtonRow (
-                new ButtonBase ("Список аккаунтов", new CallbackData ("GoTo", "AccListForm").Serialize ()));
+            btn.AddButtonRow(
+                new ButtonBase("Начать работу", new CallbackData("GoTo", "WorkForm").Serialize()));
+            btn.AddButtonRow(
+                new ButtonBase("Список аккаунтов", new CallbackData("GoTo", "AccListForm").Serialize()));
 
-            await this.Device.Send (text, btn);
+            await Device.Send(text, btn);
 
         }
     }

@@ -69,7 +69,9 @@ namespace TgInterface.Forms {
 
             var i = 1;
             foreach (var vkAcc in vkAccs) {
+                var status = vkAcc.VkAccStatus == ModelScoutAPI.Models.VkAcc.Status.Error ? "(Ошибка)" : "";
                 text += $"{i++}) {vkAcc.FirstName} {vkAcc.LastName} {vkAcc.CountAddedFriends}/{vkAcc.FriendsLimit} "
+                + $"{status}"
                 + "В обработке: " + await api.GetCountAcceptedVkClients(vkAcc.VkAccId) + "\n";
 
                 totalLimit += vkAcc.FriendsLimit;
