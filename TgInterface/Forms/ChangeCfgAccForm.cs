@@ -199,8 +199,8 @@ namespace TgInterface.Forms {
                 new ButtonBase($"Месяц ({vkAcc.BirthMonth})", new CallbackData("ChangeBirthMonth", "").Serialize())
             );
             btn.AddButtonRow(
-                new ButtonBase($"Возраст от ({vkAcc.AgeFrom})", new CallbackData("ChangeAgeFrom", "").Serialize()),
-                new ButtonBase($"Возраст до ({vkAcc.AgeTo})", new CallbackData("ChangeAgeTo", "").Serialize()),
+                new ButtonBase($"В от ({vkAcc.AgeFrom})", new CallbackData("ChangeAgeFrom", "").Serialize()),
+                new ButtonBase($"В до ({vkAcc.AgeTo})", new CallbackData("ChangeAgeTo", "").Serialize()),
                 new ButtonBase($"Пол ({vkAcc.Sex})", new CallbackData("ChangeSex", "").Serialize())
             );
             btn.AddButtonRow(
