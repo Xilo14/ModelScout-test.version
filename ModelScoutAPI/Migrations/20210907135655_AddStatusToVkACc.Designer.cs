@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ModelScoutAPI;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ModelScoutAPI.Migrations
 {
     [DbContext(typeof(ModelScoutDbContext))]
-    partial class ModelScoutDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210907135655_AddStatusToVkACc")]
+    partial class AddStatusToVkACc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,6 +82,9 @@ namespace ModelScoutAPI.Migrations
                     b.Property<int>("City")
                         .HasColumnType("integer");
 
+                    b.Property<int>("ClientStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("CountAddedFriends")
                         .HasColumnType("integer");
 
@@ -99,9 +104,6 @@ namespace ModelScoutAPI.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VkAccStatus")
                         .HasColumnType("integer");
 
                     b.HasKey("VkAccId");
