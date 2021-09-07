@@ -367,7 +367,8 @@ namespace ModelScoutAPI {
                 if (profileInfo != null) {
                     vkAcc.FirstName = profileInfo.FirstName;
                     vkAcc.LastName = profileInfo.LastName;
-                    vkAcc.VkAccStatus = VkAcc.Status.Active;
+                    vkAcc.VkAccStatus = vkAcc.VkAccStatus == VkAcc.Status.Error
+                        ? VkAcc.Status.Active : vkAcc.VkAccStatus;
                 } else {
                     vkAcc.VkAccStatus = VkAcc.Status.Error;
                 }
