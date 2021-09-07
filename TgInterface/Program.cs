@@ -78,7 +78,7 @@ namespace TgInterface {
                 using (LogContext.PushProperty("message", en.Message)) {
                     Log.Information(
                         "New msg from @{Username}({ChatId}) \"{Text}\" {RawData}",
-                        en.Message.Message.From.Username,
+                        en.Message.Message.Chat.Username,
                         en.DeviceId,
                         en.Message.MessageText,
                         en.Message.RawData ?? "");
