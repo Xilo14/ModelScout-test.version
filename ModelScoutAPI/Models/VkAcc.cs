@@ -7,7 +7,8 @@ namespace ModelScoutAPI.Models {
     public class VkAcc : IComparable<VkAcc> {
         public enum Status {
             Active,
-            Error
+            Error,
+            Paused
         }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
