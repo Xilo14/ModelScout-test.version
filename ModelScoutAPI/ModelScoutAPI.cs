@@ -113,7 +113,14 @@ namespace ModelScoutAPI {
         public ModelScoutAPI(ModelScoutAPIOptions options) {
             this.Options = options;
         }
+        public async Task SetVkAccStatus(VkAcc vkAcc, VkAcc.Status status) {
+            using var db = new ModelScoutDbContext(_dbOptionsBuilder.Options);
+            db.VkAccs
+            .FirstOrDefault(e => e.VkAccId == vkAcc.VkAccId)
+            .VkAccStatus = status;
 
+            await db.SaveChangesAsync();
+        }
         public async Task SetClientStatus(int id, VkClient.Status Status) {
             using (var db = new ModelScoutDbContext(this._dbOptionsBuilder.Options)) {
                 db.VkClients
@@ -158,7 +165,18 @@ namespace ModelScoutAPI {
             foreach (var vkAcc in this.User.VkAccs)
                 await this.ClearUncheckedClients(vkAcc);
         }
+        public async Task ClearAcceptedClients(VkAcc vkAcc) {
+            using var db = new ModelScoutDbContext(_dbOptionsBuilder.Options);
 
+            var clients = db.VkClients.Where(
+                e => e.VkAccId == vkAcc.VkAccId
+                && e.ClientStatus == VkClient.Status.Accepted);
+
+            foreach (var client in clients)
+                client.ClientStatus = VkClient.Status.Unchecked;
+
+            await db.SaveChangesAsync();
+        }
         public async Task ClearCheckedClients(VkAcc vkAcc) {
             using (var db = new ModelScoutDbContext(this._dbOptionsBuilder.Options)) {
                 var clients = db.VkClients.Where(e => e.VkAccId == vkAcc.VkAccId && e.ClientStatus == VkClient.Status.Checked);
@@ -343,7 +361,7 @@ namespace ModelScoutAPI {
                 return false;
             }
         }
-        private async Task<VkAcc> UpdateVkAccStatus(VkAcc vkAcc) {
+        public async Task<VkAcc> UpdateVkAccStatus(VkAcc vkAcc) {
             try {
                 var profileInfo = await VkApisManager.GetProfileInfo(vkAcc);
                 if (profileInfo != null) {
