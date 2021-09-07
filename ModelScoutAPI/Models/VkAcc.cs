@@ -5,6 +5,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ModelScoutAPI.Models {
     public class VkAcc : IComparable<VkAcc> {
+        public enum Status {
+            Active,
+            Error
+        }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int VkAccId { get; set; }
@@ -29,6 +33,7 @@ namespace ModelScoutAPI.Models {
         public int UserId { get; set; }
         public User User { get; set; }
 
+        public Status VkAccStatus { get; set; }
         public List<VkClient> VkClients { get; } = new List<VkClient>();
 
         public int CompareTo(VkAcc other) {
