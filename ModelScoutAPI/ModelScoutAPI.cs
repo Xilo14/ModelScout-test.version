@@ -52,6 +52,8 @@ namespace ModelScoutAPI {
             } catch (Exception e) {
                 if (await VkApisManager.CheckCountFriendRequests(client.VkAcc) == 10000)
                     await this.ClearFriends(client.VkAcc);
+                else
+                    await UpdateVkAccStatus(client.VkAcc);
             }
         }
 
@@ -60,7 +62,7 @@ namespace ModelScoutAPI {
                 await VkApisManager.RandomLikeUser(client.VkAcc, client.ProfileVkId);
 
             } catch (Exception e) {
-
+                await UpdateVkAccStatus(client.VkAcc);
             } finally {
                 await this.SetClientStatus(client.VkClientId, VkClient.Status.Liked);
             }
@@ -176,8 +178,10 @@ namespace ModelScoutAPI {
 
         public async Task<List<VkClient>> GetUnchekedClientsForActivesVkAccs(int count) {
             var clients = new List<VkClient>();
-            var vkAccs = this.User.VkAccs.ToList();
-            int gettedCount = 0;
+            var vkAccs = this.User.VkAccs
+                .Where(acc => acc.VkAccStatus == VkAcc.Status.Active)
+                .ToList();
+            var gettedCount = 0;
 
             //5vkAccs.RemoveAll(e => e.CountAddedFriends + GetCountAcceptedVkClients(e.VkAccId).Result >= e.FriendsLimit);
 
@@ -232,15 +236,22 @@ namespace ModelScoutAPI {
         }
 
         private async Task UpdateClients(VkAcc vkAcc) {
-            using (var db = new ModelScoutDbContext(this._dbOptionsBuilder.Options)) {
-                int Count = 200;
-                var acc = db.VkAccs.FirstOrDefault(e => e.VkAccId == vkAcc.VkAccId);
-                vkAcc.VkClients.AddRange(await VkApisManager.GetNewClients(
-                    acc,
-                     Count, this, db));
-                await db.SaveChangesAsync();
+            try {
+                using (var db = new ModelScoutDbContext(this._dbOptionsBuilder.Options)) {
+                    int Count = 200;
+                    var acc = db.VkAccs.FirstOrDefault(e => e.VkAccId == vkAcc.VkAccId);
+                    vkAcc.VkClients.AddRange(await VkApisManager.GetNewClients(
+                        acc,
+                         Count, this, db));
+                    await db.SaveChangesAsync();
+                }
+            } catch (Exception) {
+                await UpdateVkAccStatus(vkAcc);
             }
+
+
         }
+
 
         public async Task<List<Models.VkAcc>> GetVkAccs(bool NeedUpdate = false) {
             List<Models.VkAcc> vkAccs;
@@ -333,14 +344,17 @@ namespace ModelScoutAPI {
             }
         }
         private async Task<VkAcc> UpdateVkAccStatus(VkAcc vkAcc) {
-            //TODO: Check status of acc
-            var profileInfo = await VkApisManager.GetProfileInfo(vkAcc);
-            if (profileInfo != null) {
-                vkAcc.FirstName = profileInfo.FirstName;
-                vkAcc.LastName = profileInfo.LastName;
-                //TODO: Set status of acc
-            } else {
-                //TODO: Set status of acc
+            try {
+                var profileInfo = await VkApisManager.GetProfileInfo(vkAcc);
+                if (profileInfo != null) {
+                    vkAcc.FirstName = profileInfo.FirstName;
+                    vkAcc.LastName = profileInfo.LastName;
+                    vkAcc.VkAccStatus = VkAcc.Status.Active;
+                } else {
+                    vkAcc.VkAccStatus = VkAcc.Status.Error;
+                }
+            } catch (Exception) {
+                vkAcc.VkAccStatus = VkAcc.Status.Error;
             }
             return vkAcc;
         }
