@@ -29,7 +29,9 @@ namespace ModelScoutBackend {
             foreach (var acc in accs) {
                 string actionText;
                 VkClient client = null;
-                if (acc.CountAddedFriends >= acc.FriendsLimit) {
+                if (acc.VkAccStatus != VkAcc.Status.Active)
+                    actionText = "Ошибка!";
+                else if (acc.CountAddedFriends >= acc.FriendsLimit) {
                     actionText = "Достигнут лимит";
                 } else {
                     client = await api.GetLikedClient(acc);
@@ -48,13 +50,14 @@ namespace ModelScoutBackend {
 
                     }
                 }
-                Log.Information("[{WorkerAccName}]({CountAddedFriends}+{InProccessCount}/{FriendsLimit}) " +
+                Log.Information("[{VkAccStatus}]({CountAddedFriends}+{InProccessCount}/{FriendsLimit})[{WorkerAccName}] " +
                     actionText +
                     " {ClientProfileVkId}",
-                        acc.FirstName + " " + acc.LastName,
+                        acc.VkAccStatus.ToString(),
                         acc.CountAddedFriends,
                         await api.GetCountAcceptedVkClients(acc.VkAccId),
                         acc.FriendsLimit,
+                        acc.FirstName + " " + acc.LastName,
                         client != null ? client.ProfileVkId.ToString() : "");
             }
             Log.Debug("Wait for all tasks completed...");
