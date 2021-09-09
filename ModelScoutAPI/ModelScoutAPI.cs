@@ -47,8 +47,8 @@ namespace ModelScoutAPI {
             } catch (CannotAddUserBlacklistedException) {
                 await SetClientDeclined(client.VkClientId);
             } catch (UserAuthorizationFailException e) {
-                Console.WriteLine(client.VkAcc.FirstName + " " + client.VkAcc.LastName);
-                throw;
+                //Console.WriteLine(client.VkAcc.FirstName + " " + client.VkAcc.LastName);
+                await UpdateVkAccStatus(client.VkAcc);
             } catch (Exception e) {
                 if (await VkApisManager.CheckCountFriendRequests(client.VkAcc) == 10000)
                     await this.ClearFriends(client.VkAcc);
@@ -115,9 +115,10 @@ namespace ModelScoutAPI {
         }
         public async Task SetVkAccStatus(VkAcc vkAcc, VkAcc.Status status) {
             using var db = new ModelScoutDbContext(_dbOptionsBuilder.Options);
-            db.VkAccs
-            .FirstOrDefault(e => e.VkAccId == vkAcc.VkAccId)
-            .VkAccStatus = status;
+            var acc = db.VkAccs
+            .FirstOrDefault(e => e.VkAccId == vkAcc.VkAccId);
+            if (acc != null)
+                acc.VkAccStatus = status;
 
             await db.SaveChangesAsync();
         }
@@ -375,6 +376,7 @@ namespace ModelScoutAPI {
             } catch (Exception) {
                 vkAcc.VkAccStatus = VkAcc.Status.Error;
             }
+            await SetVkAccStatus(vkAcc, vkAcc.VkAccStatus);
             return vkAcc;
         }
     }
