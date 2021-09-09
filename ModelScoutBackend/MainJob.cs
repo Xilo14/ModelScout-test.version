@@ -29,7 +29,7 @@ namespace ModelScoutBackend {
             foreach (var acc in accs) {
                 string actionText;
                 VkClient client = null;
-                if (acc.VkAccStatus != VkAcc.Status.Active)
+                if (acc.VkAccStatus == VkAcc.Status.Error)
                     actionText = "Ошибка!";
                 else if (acc.CountAddedFriends >= acc.FriendsLimit) {
                     actionText = "Достигнут лимит";
